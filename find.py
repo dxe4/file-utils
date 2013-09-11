@@ -68,7 +68,7 @@ pp.pprint(found_files_list)
 if (copy_dirs):
     res=starmap(copy_files,((files, copy_dir) for copy_dir in copy_dirs for files in found_files_list))
 if (move_dirs):
-    res=starmap(copy_files,((files, move_dir) for move_dir in move_dirs for files in found_files_list))
+    res=starmap(move_files,((files, move_dir) for move_dir in move_dirs for files in found_files_list))
 
 
 
