@@ -16,8 +16,7 @@ parser.add_argument("-m", "--move", help="move files to dir (default= current di
 
 args = parser.parse_args()
 file_name = args.name
-print(args.dir)
-print(len(args.dir))
+#TODO make code re-usable
 search_dirs = [str(os.getcwd())] if args.dir == [] else args.dir
 move_dirs = [str(os.getcwd())] if args.move == [] else args.move
 copy_dirs = [str(os.getcwd())] if args.copy == [] else args.copy
@@ -29,6 +28,7 @@ print("copy dir %s" % copy_dirs)
 
 
 def find(path, regex):
+    #TODO make filter a callback
     matches = []
     for root, dir_names, file_names in os.walk(path):
         matches.extend(filter_by_name(root, file_names, regex))
@@ -42,6 +42,7 @@ def filter_by_name(root, file_names, regex):
 def copy_files(file_paths, destination_dir):
     for file_path in file_paths:
         modified_time, name, type = get_file_info(file_path)
+        #TODO make rename a callback
         new_path = ''.join([i for i in [destination_dir, "/", name, "_", str(modified_time)]])
         if type:
             new_path.join(type)
@@ -61,14 +62,20 @@ def get_file_info(file_path):
     return modified_time, filename[0], filename[1] if len(filename) > 1 else None
 
 
-found_files_list = list(starmap(find, ((search_dir, file_name) for search_dir in search_dirs)))
+found_files_list = list(starmap(
+    find, ((search_dir, file_name) for search_dir in search_dirs))
+)
 pp = PrettyPrinter()
 pp.pprint(found_files_list)
 
+#TODO make code re-usable
 if (copy_dirs):
-    res=starmap(copy_files,((files, copy_dir) for copy_dir in copy_dirs for files in found_files_list))
+    args = [(files, copy_dir) for copy_dir in copy_dirs for files in found_files_list]
+    res=list(starmap(copy_files,args))
+
 if (move_dirs):
-    res=starmap(move_files,((files, move_dir) for move_dir in move_dirs for files in found_files_list))
+    args = ((files, move_dir) for move_dir in move_dirs for files in found_files_list)
+    res=list(starmap(move_files,args))
 
 
 
