@@ -30,13 +30,14 @@ class FindFiles():
 
 class PostFind():
     def execute(self, found_files_list:list, copy_dirs:list, move_dirs:list):
-        if copy_dirs:
-            args = [(files, copy_dir) for copy_dir in copy_dirs for files in found_files_list]
-            list(starmap(self.copy_files, args))
+        self._execute(copy_dirs,found_files_list,self.copy_files)
+        self._execute(move_dirs,found_files_list,self.move_files)
 
-        if move_dirs:
-            args = ((files, move_dir) for move_dir in move_dirs for files in found_files_list)
-            list(starmap(self.move_files, args))
+    def _execute(self,dirs:list,found_files_list:list,callback):
+        if not dirs:
+            return
+        args = ((files, dir) for dir in dirs for files in found_files_list)
+        list(starmap(callback, args))
 
     def copy_files(self, file_paths:list, destination_dir:str):
         for file_path in file_paths:
