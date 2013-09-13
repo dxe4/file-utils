@@ -10,7 +10,7 @@ from itertools import starmap
 
 
 class FindFiles():
-    def _find(self, path, regex):
+    def _find(self, path:str, regex:str):
         #TODO make filter a callback
         matches = []
         for root, dir_names, file_names in os.walk(path):
@@ -18,18 +18,18 @@ class FindFiles():
         return matches
 
 
-    def filter_by_name(self, root, file_names, regex):
+    def filter_by_name(self, root:str, file_names:list, regex:str):
         return [os.path.join(root, file_name) for file_name in fnmatch.filter(file_names, regex)]
 
 
-    def execute(self, file_name, search_dirs):
+    def execute(self, file_name:str, search_dirs:list):
         return list(starmap(
             self._find, ((search_dir, file_name) for search_dir in search_dirs))
         )
 
 
 class PostFind():
-    def execute(self, found_files_list, copy_dirs, move_dirs):
+    def execute(self, found_files_list:list, copy_dirs:list, move_dirs:list):
         if copy_dirs:
             args = [(files, copy_dir) for copy_dir in copy_dirs for files in found_files_list]
             list(starmap(self.copy_files, args))
@@ -38,7 +38,7 @@ class PostFind():
             args = ((files, move_dir) for move_dir in move_dirs for files in found_files_list)
             list(starmap(self.move_files, args))
 
-    def copy_files(self, file_paths, destination_dir):
+    def copy_files(self, file_paths:list, destination_dir:str):
         for file_path in file_paths:
             modified_time, name, type = self.get_file_info(file_path)
             #TODO make rename a callback
@@ -48,13 +48,13 @@ class PostFind():
             shutil.copy2(file_path, new_path)
 
 
-    def move_files(self, file_paths, destination_dir):
+    def move_files(self, file_paths:list, destination_dir:str):
         for file_path in file_paths:
             file_name = os.path.split(file_path)[1]
             shutil.move(file_path, destination_dir + file_name)
 
 
-    def get_file_info(self, file_path):
+    def get_file_info(self, file_path:str):
         head, tail = os.path.split(file_path)
         modified_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
         filename = tail.split(".")
@@ -77,7 +77,7 @@ class InputHandler():
 
         print(self.__dict__)
 
-    def init_optional_dirs(self, args, attr_name, arg_name):
+    def init_optional_dirs(self, args:dict, attr_name:str, arg_name:str):
         value = [str(os.getcwd())] if args[arg_name] == [] else args[arg_name]
         setattr(self, attr_name, value)
 
