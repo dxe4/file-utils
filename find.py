@@ -10,7 +10,7 @@ from itertools import starmap
 
 
 class FindFiles():
-    def find(self, path, regex):
+    def _find(self, path, regex):
         #TODO make filter a callback
         matches = []
         for root, dir_names, file_names in os.walk(path):
@@ -22,14 +22,14 @@ class FindFiles():
         return [os.path.join(root, file_name) for file_name in fnmatch.filter(file_names, regex)]
 
 
-    def find_files(self, file_name, search_dirs):
+    def execute(self, file_name, search_dirs):
         return list(starmap(
-            self.find, ((search_dir, file_name) for search_dir in search_dirs))
+            self._find, ((search_dir, file_name) for search_dir in search_dirs))
         )
 
 
 class PostFind():
-    def post_find(self, found_files_list, copy_dirs, move_dirs):
+    def execute(self, found_files_list, copy_dirs, move_dirs):
         if copy_dirs:
             args = [(files, copy_dir) for copy_dir in copy_dirs for files in found_files_list]
             list(starmap(self.copy_files, args))
@@ -87,11 +87,10 @@ if __name__ == '__main__':
     findFiles = FindFiles()
     postFind = PostFind()
 
-    found_files_list = findFiles.find_files(inputHandler.file_name, inputHandler.search_dirs)
-    postFind.post_find(found_files_list, inputHandler.copy_dirs, inputHandler.move_dirs)
+    found_files_list = findFiles.execute(inputHandler.file_name, inputHandler.search_dirs)
+    postFind.execute(found_files_list, inputHandler.copy_dirs, inputHandler.move_dirs)
 
     pp = PrettyPrinter()
     pp.pprint(found_files_list)
 
-
-
+    print("\033[1m 999 \033[0m")
