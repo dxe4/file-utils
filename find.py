@@ -8,75 +8,88 @@ import sys
 import os
 from itertools import starmap
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-n", "--name", help="file name to search (matches regex)", type=str)
-parser.add_argument("-d", "--dir", help="directory to search (default= current dir)", type=str, nargs='*')
-parser.add_argument("-c", "--copy", help="copy files to dir (default= current dir)", type=str, nargs='*')
-parser.add_argument("-m", "--move", help="move files to dir (default= current dir)", type=str, nargs='*')
+class FindFiles():
 
-args = parser.parse_args()
-file_name = args.name
-#TODO make code re-usable
-search_dirs = [str(os.getcwd())] if args.dir == [] else args.dir
-move_dirs = [str(os.getcwd())] if args.move == [] else args.move
-copy_dirs = [str(os.getcwd())] if args.copy == [] else args.copy
+    def __init__(self):
 
-print(args)
-print("dir %s" % search_dirs)
-print("move_dir %s" % move_dirs)
-print("copy dir %s" % copy_dirs)
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-n", "--name", help="file name to search (matches regex)", type=str)
+        parser.add_argument("-d", "--dir", help="directory to search (default= current dir)", type=str, nargs='*')
+        parser.add_argument("-c", "--copy", help="copy files to dir (default= current dir)", type=str, nargs='*')
+        parser.add_argument("-m", "--move", help="move files to dir (default= current dir)", type=str, nargs='*')
+        self.args = vars(parser.parse_args())
+        
+        self.file_name = self.args['name']
+        self.init_optional_dirs(self.args,"search_dirs", "dir") 
+        self.init_optional_dirs(self.args,"move_dirs", "move")
+        self.init_optional_dirs(self.args,"copy_dirs", "copy")    
 
+        print(self.args)
+        print("search_dirs %s" % self.search_dirs)
+        print("move_dirs %s" % self.move_dirs)
+        print("copy dirs %s" % self.copy_dirs)
+    
 
-def find(path, regex):
-    #TODO make filter a callback
-    matches = []
-    for root, dir_names, file_names in os.walk(path):
-        matches.extend(filter_by_name(root, file_names, regex))
-    return matches
+    def init_optional_dirs(self,args,attr_name,arg_name):
+        value = [str(os.getcwd())] if args[arg_name] == [] else args[arg_name]
+        setattr(self,attr_name,value)
+        pass
 
-
-def filter_by_name(root, file_names, regex):
-    return [os.path.join(root, file_name) for file_name in fnmatch.filter(file_names, regex)]
-
-
-def copy_files(file_paths, destination_dir):
-    for file_path in file_paths:
-        modified_time, name, type = get_file_info(file_path)
-        #TODO make rename a callback
-        new_path = ''.join([i for i in [destination_dir, "/", name, "_", str(modified_time)]])
-        if type:
-            new_path.join(type)
-        shutil.copy2(file_path, new_path)
+    def find(self,path, regex):
+        #TODO make filter a callback
+        matches = []
+        for root, dir_names, file_names in os.walk(path):
+            matches.extend(self.filter_by_name(root, file_names, regex))
+        return matches
 
 
-def move_files(file_paths, destination_dir):
-    for file_path in file_paths:
-        file_name = os.path.split(file_path)[1]
-        shutil.move(file_path, destination_dir + file_name)
+    def filter_by_name(self,root, file_names, regex):
+        return [os.path.join(root, file_name) for file_name in fnmatch.filter(file_names, regex)]
 
 
-def get_file_info(file_path):
-    head, tail = os.path.split(file_path)
-    modified_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
-    filename = tail.split(".")
-    return modified_time, filename[0], filename[1] if len(filename) > 1 else None
+    def copy_files(self,file_paths, destination_dir):
+        for file_path in file_paths:
+            modified_time, name, type = self.get_file_info(file_path)
+            #TODO make rename a callback
+            new_path = ''.join([i for i in [destination_dir, "/", name, "_", str(modified_time)]])
+            if type:
+                new_path.join(type)
+            shutil.copy2(file_path, new_path)
 
 
-found_files_list = list(starmap(
-    find, ((search_dir, file_name) for search_dir in search_dirs))
-)
-pp = PrettyPrinter()
-pp.pprint(found_files_list)
+    def move_files(self,file_paths, destination_dir):
+        for file_path in file_paths:
+            file_name = os.path.split(file_path)[1]
+            shutil.move(file_path, destination_dir + file_name)
 
-#TODO make code re-usable
-if (copy_dirs):
-    args = [(files, copy_dir) for copy_dir in copy_dirs for files in found_files_list]
-    res=list(starmap(copy_files,args))
 
-if (move_dirs):
-    args = ((files, move_dir) for move_dir in move_dirs for files in found_files_list)
-    res=list(starmap(move_files,args))
+    def get_file_info(self,file_path):
+        head, tail = os.path.split(file_path)
+        modified_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
+        filename = tail.split(".")
+        return modified_time, filename[0], filename[1] if len(filename) > 1 else None
 
+    def find_files(self):
+
+        found_files_list = list(starmap(
+            self.find, ((search_dir, self.file_name) for search_dir in self.search_dirs))
+        )
+        pp = PrettyPrinter()
+
+        pp.pprint(found_files_list)
+
+        #TODO make code re-usable
+        if (self.copy_dirs):
+            args = [(files, copy_dir) for copy_dir in self.copy_dirs for files in found_files_list]
+            res=list(starmap(self.copy_files,args))
+
+        if (self.move_dirs):
+            args = ((files, move_dir) for move_dir in self.move_dirs for files in found_files_list)
+            res=list(starmap(self.move_files,args))
+
+if __name__ == '__main__':
+    f = FindFiles()
+    f.find_files()
 
 
 
