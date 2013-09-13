@@ -42,7 +42,7 @@ class PostFind():
         for file_path in file_paths:
             modified_time, name, type = self.get_file_info(file_path)
             #TODO make rename a callback
-            new_path = ''.join([i for i in [destination_dir, "/", name, "_", str(modified_time)]])
+            new_path = ''.join([destination_dir, "/", name, "_", str(modified_time)])
             if type:
                 new_path.join(type)
             shutil.copy2(file_path, new_path)
