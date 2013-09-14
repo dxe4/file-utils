@@ -2,12 +2,12 @@ import fnmatch
 import os
 import shutil
 import datetime
-from pprint import PrettyPrinter
 import argparse
+from itertools import starmap
+#not used
 import sys
 import os
-from itertools import starmap
-
+from pprint import PrettyPrinter
 
 class FindFiles():
     def _find(self, path:str, regex:str):
