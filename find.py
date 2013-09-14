@@ -50,6 +50,9 @@ class PostFind():
 
 
     def move_files(self, file_paths:list, destination_dir:str):
+        #TODO removed for safety (no need to move files dev version)
+        if True:
+            return
         for file_path in file_paths:
             file_name = os.path.split(file_path)[1]
             shutil.move(file_path, destination_dir + file_name)
@@ -112,7 +115,7 @@ class Printer():
             return
         for file_list in found_files_list:
             for found_file in file_list:
-                print(self._color_str('No Results Found', self.COLOR_GREEN))
+                print(self._color_str(found_file, self.COLOR_GREEN))
 
 
 if __name__ == '__main__':
