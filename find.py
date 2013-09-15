@@ -67,19 +67,30 @@ class PostFind():
 
 class InputHandler():
     def __init__(self):
-        parser = argparse.ArgumentParser()
-        parser.add_argument("-n", "--name", help="file name to search (matches regex)", type=str)
-        parser.add_argument("-d", "--dir", help="directory to search (default= current dir)", type=str, nargs='*')
-        parser.add_argument("-c", "--copy", help="copy files to dir (default= current dir)", type=str, nargs='*')
-        parser.add_argument("-m", "--move", help="move files to dir (default= current dir)", type=str, nargs='*')
-        self.args = vars(parser.parse_args())
+        self.parser = argparse.ArgumentParser()
+        self.parser.add_argument("-n", "--name", help="file name to search (matches regex)", type=str)
+        self.parser.add_argument("-d", "--dir", help="directory to search (default= current dir)", type=str, nargs='*')
+        self.parser.add_argument("-c", "--copy", help="copy files to dir (default= current dir)", type=str, nargs='*')
+        self.parser.add_argument("-m", "--move", help="move files to dir (default= current dir)", type=str, nargs='*')
+        self.args = vars(self.parser.parse_args())
 
         self.file_name = self.args['name']
         self.init_optional_dirs(self.args, "search_dirs", "dir")
         self.init_optional_dirs(self.args, "move_dirs", "move")
         self.init_optional_dirs(self.args, "copy_dirs", "copy")
 
-        print(self.__dict__)
+        #print(self.__dict__)
+
+    def check_integrity(self):
+        """
+        Checks if the input can be produced (eg file name given)
+        If the output is not right it prints the usage
+        :return: True if the input can be used by the script
+        """
+        if not self.file_name:
+            self.parser.print_help()
+            return False
+        return True
 
     def init_optional_dirs(self, args:dict, attr_name:str, arg_name:str):
         value = [str(os.getcwd())] if args[arg_name] == [] else args[arg_name]
@@ -118,8 +129,10 @@ class Printer():
                 print(self._color_str(found_file, self.COLOR_GREEN))
 
 
-if __name__ == '__main__':
+def main():
     inputHandler = InputHandler()
+    if not inputHandler.check_integrity():
+        return
     findFiles = FindFiles()
     postFind = PostFind()
     printer = Printer()
@@ -131,3 +144,5 @@ if __name__ == '__main__':
 
     # print(COLOR_GREEN + "green" + COLOR_NC )
     # print("\033[1m 999 \033[0m")
+if __name__ == '__main__':
+    main()
