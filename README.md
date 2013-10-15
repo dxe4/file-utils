@@ -1,1 +1,3 @@
-junk code at the moment
+Just for practice and experience...
+
+This is a "i have nothing to do so i re-invent the wheel" project.
